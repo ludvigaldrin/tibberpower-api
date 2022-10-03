@@ -25,6 +25,7 @@ const tibberFeed = new TibberFeed(config);
 
 // Subscribe to "data" event.
 tibberFeed.on('data', (data) => {
+    console.log(data);
     db.set('power', data.power);
     db.set('timestamp', data.timestamp);
 });
