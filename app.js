@@ -20,21 +20,50 @@ const config = {
     power: true,
 };
 
-// Instantiate TibberFeed.
 const tibberFeed = new TibberFeed(config);
 
-// Subscribe to "data" event.
-tibberFeed.on('data', (data) => {
-    console.log(data);
-    db.set('power', data.power);
-    db.set('timestamp', data.timestamp);
-});
+const startTibberFeed = () => {
+    tibberFeed.on('data', (data) => {
+        console.log(data);
+        db.set('power', data.power);
+        db.set('timestamp', data.timestamp);
+    });
 
-// Connect to Tibber data feed
-tibberFeed.connect();
+    // Connect to Tibber data feed
+    tibberFeed.connect();
+}
+
+const stopTibberFeed = () => {
+    tibberFeed.close();
+}
+
+startTibberFeed();
+
+const isTibberAlive = () => {
+    const timestamp = db.get('timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+
+    const diff = now - date;
+    var active = true;
+    if (diff > 300000) {
+        console.log("TibberFeed has timeout!", diff);
+        active = false;
+    }
+    if (!active) {
+        console.log("Restarting TibberFeed!");
+        try {
+            stopTibberFeed();
+        } catch (err) { }
+        startTibberFeed();
+    }
+}
+
 
 app.get("/power", (request, response) => {
+    isTibberAlive();
     const value = db.get('power');
+    console.log("Power Fetch: ", value)
     response.status(200);
     response.send("" + value);
 });
