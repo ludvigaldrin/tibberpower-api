@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "dotenv": "^16.0.3",
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "simple-json-db": "^2.0.0",
-    "tibber-api": "^4.1.0"
+    "tibber-api": "^5.1.6"
   }
 }

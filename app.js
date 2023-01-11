@@ -1,4 +1,4 @@
-const { TibberFeed } = require('tibber-api');
+const { TibberFeed, TibberQuery } = require('tibber-api');
 const JSONdb = require('simple-json-db');
 const db = new JSONdb('storage.json');
 require('dotenv').config()
@@ -10,27 +10,47 @@ const port = 3030;
 // Config object needed when instantiating TibberQuery
 const config = {
     // Endpoint configuration.
+    active: true,
     apiEndpoint: {
         apiKey: process.env.TIBBER_TOKEN, // Demo token
-        feedUrl: 'wss://api.tibber.com/v1-beta/gql/subscriptions',
+        queryUrl: 'https://api.tibber.com/v1-beta/gql',
     },
     // Query configuration.
     homeId: process.env.TIBBER_HOME_ID,
     timestamp: true,
-    power: true,
+    power: true
 };
 
-const tibberFeed = new TibberFeed(config);
+const query = new TibberQuery(config);
+const tibberFeed = new TibberFeed(query);
 
-const startTibberFeed = () => {
+const startTibberFeed = async () => {
+    console.log("Starting TibberFeed!")
     tibberFeed.on('data', (data) => {
         console.log(data);
         db.set('power', data.power);
         db.set('timestamp', data.timestamp);
     });
 
+    tibberFeed.on('connecting', data => {
+        console.log("connecting:", data);
+    });
+
+    tibberFeed.on('connected', data => {
+        console.log("connected:",data);
+    });
+
+    tibberFeed.on('disconnecting', data => {
+        console.log("disconnecting:",data);
+    });
+
+    tibberFeed.on('disconnected', data => {
+        console.log("disconnected:",data);
+    });
+
+
     // Connect to Tibber data feed
-    tibberFeed.connect();
+    await tibberFeed.connect();
 }
 
 const stopTibberFeed = () => {
